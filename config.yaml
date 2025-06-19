@@ -1,0 +1,41 @@
+system:
+  env: public #develop
+  addr: 9999
+  use-multipoint: true
+  allow-origins: [ ]
+
+redis:
+  db: 10
+  addr: '23.148.24.195:6379'
+  password: 'redis_mKFGkj'
+
+# zap logger configuration
+zap:
+  level: 'info'
+  format: 'console'
+  prefix: '[ws-greet]'
+  directory: 'log'
+  link-name: 'latest_log'
+  show-line: true
+  encode-level: 'CapitalLevelEncoder'
+  stacktrace-key: 'stacktrace'
+  log-in-console: true
+  keep-days: 7
+
+# consul配置
+consul:
+  address: "23.148.24.195:8500"  # Consul服务地址
+  datacenter: "dc1"          # 数据中心
+  service:
+    id: "ws-greet-{hostname}-{port}"  # 服务实例ID模板，支持变量替换
+    name: "ws-greet"      # 服务名称
+    tags:                    # 服务标签
+      - "chat"
+      - "im"
+      - "scheduler"
+    address: ""              # 留空会自动获取本机IP
+    check:                   # 健康检查配置
+      http: "/health"        # 健康检查路径
+      interval: "10s"        # 检查间隔
+      timeout: "5s"          # 检查超时
+      deregister-critical-service-after: "30s"  # 服务不健康多久后注销

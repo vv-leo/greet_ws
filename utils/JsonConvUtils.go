@@ -1,0 +1,47 @@
+/**
+ * @Description 转为小驼峰
+ * @Author $
+ * @Date $ $
+ **/
+package utils
+
+import (
+	"encoding/json"
+	"regexp"
+	"strings"
+	"unicode"
+)
+
+type JsonCamelCase struct {
+	Value interface{}
+}
+
+func (c JsonCamelCase) MarshalJSON() ([]byte, error) {
+	var keyMatchRegex = regexp.MustCompile(`\"(\w+)\":`)
+	marshalled, err := json.Marshal(c.Value)
+	converted := keyMatchRegex.ReplaceAllFunc(
+		marshalled,
+		func(match []byte) []byte {
+			matchStr := string(match)
+			key := matchStr[1 : len(matchStr)-2]
+			resKey := LcFirst(Case2Camel(key))
+			return []byte(`"` + resKey + `":`)
+		},
+	)
+	return converted, err
+}
+
+// 下划线写法转为驼峰写法
+func Case2Camel(name string) string {
+	name = strings.Replace(name, "_", " ", -1)
+	name = strings.Title(name)
+	return strings.Replace(name, " ", "", -1)
+}
+
+// 首字母小写
+func LcFirst(str string) string {
+	for i, v := range str {
+		return string(unicode.ToLower(v)) + str[i+1:]
+	}
+	return ""
+}
