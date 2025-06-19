@@ -2,12 +2,10 @@ package req
 
 // 发送消息
 type SendMessageModel struct {
-	UUID                 string `json:"uuid" binding:"required"`    //消息唯一id (发消息时由前端生成)
-	To                   string `json:"to"`                         //对话id
-	Type                 string `json:"type" binding:"required"`    //消息类型（如"event"、"image"、"text"）
-	Content              string `json:"content" binding:"required"` //消息内容
-	CustomerSendContents string `json:"customer_send_contents"`
-	FromPlatform         string `json:"from_platform,omitempty"` //可选。来自哪个平台客户端（用户判断是否要转发等）
+	UUID    string `json:"uuid" binding:"required"`    //消息唯一id (发消息时由前端生成)
+	To      string `json:"to"`                         //对话id
+	Type    string `json:"type" binding:"required"`    //消息类型（如"event"、"image"、"text"）
+	Content string `json:"content" binding:"required"` //消息内容
 }
 
 type LastMessageTimeContactIdModel struct {
