@@ -16,7 +16,6 @@ import (
 
 // SessionClient 只支持直连方式
 // 归档会话相关API
-// 如需DNS/Consul方式请新建独立文件
 
 const HttpRequestTimeout = 100
 
