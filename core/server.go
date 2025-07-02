@@ -20,12 +20,6 @@ type server interface {
 }
 
 func RunWindowsServer() {
-	// 初始化 Redis（如果需要）
-	if global.SERVER_CONFIG.SystemConfig.UseMultipoint {
-		global.LOGGER.Info("初始化redis服务")
-		initialize.RedisInitialize()
-	}
-
 	// 初始化路由
 	Router := initialize.RoutersInitialize()
 
@@ -36,32 +30,26 @@ func RunWindowsServer() {
 	// 初始化服务器
 	s := initServer(address, Router)
 
-	// 设置优雅关闭处理
+	// 设置HTTP服务器优雅关闭处理
 	idleConnsClosed := make(chan struct{})
 	go func() {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		<-quit
 
-		global.LOGGER.Info("接收到关闭信号，开始优雅关闭...")
+		global.LOGGER.Info("HTTP服务器接收到关闭信号，开始优雅关闭...")
 
-		// 注销 Consul 服务
-		if global.SERVER_CONFIG.ConsulConfig.Address != "" {
-			if err := initialize.DeregisterService(); err != nil {
-				global.LOGGER.Error("从 Consul 注销服务失败", zap.Error(err))
-			} else {
-				global.LOGGER.Info("从 Consul 注销服务成功")
-			}
+		// 创建带超时的上下文
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		// 优雅关闭HTTP服务器
+		if err := s.Shutdown(ctx); err != nil {
+			global.LOGGER.Error("HTTP服务器关闭失败", zap.Error(err))
+		} else {
+			global.LOGGER.Info("HTTP服务器已优雅关闭")
 		}
 
-		// 关闭 Redis 连接
-		if global.REDIS != nil {
-			if err := global.REDIS.Close(); err != nil {
-				global.LOGGER.Error("关闭 Redis 连接失败", zap.Error(err))
-			}
-		}
-
-		global.LOGGER.Info("服务已完全关闭")
 		close(idleConnsClosed)
 	}()
 

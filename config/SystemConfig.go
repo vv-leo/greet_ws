@@ -8,4 +8,5 @@ type SystemConfig struct {
 	AllowOrigins      []string `mapstructure:"allow-origins" json:"allow-origins" yaml:"allow-origins"`
 	MaxKeepTime       int64    `mapstructure:"max-keep-time" json:"max-keep-time" yaml:"max-keep-time"`
 	ShardedTableCount int64    `mapstructure:"sharded-table-count" json:"sharded-table-count" yaml:"sharded-table-count"`
+	Token             string   `mapstructure:"token" json:"token" yaml:"token"`
 }
