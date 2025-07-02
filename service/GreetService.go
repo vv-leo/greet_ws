@@ -72,7 +72,14 @@ func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config 
 
 	accInfo, err := chatAccountClient.AssignAccount(pullAccReq)
 	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 账号分配失败,target: %s, err: %v", tenantId, toJSONString(target), err))
+		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 平台账号分配失败,target: %s, err: %v", tenantId, toJSONString(target), err))
+		return
+	}
+
+	platformAcc := accInfo.AccountName
+	accountType := accInfo.AccountType
+	if platformAcc == 0 || accountType == 0 {
+		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 平台账号数据错误,target: %s, err: %v", tenantId, toJSONString(target), err))
 		return
 	}
 
