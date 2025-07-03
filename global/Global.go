@@ -1,10 +1,13 @@
 package global
 
 import (
+	"fmt"
 	"git.exclouds.org/ww/greet_ws/config"
 	"github.com/go-redis/redis"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"time"
 )
 
 var (
@@ -66,4 +69,19 @@ func InitExternalApiUrl() {
 
 	FileMediaDownloadAndUploadApiUrl = "/api/v1/im/mediaDownloadAndUpload" // 媒体文件上传下载
 	ChatSocketPushMsgUrl = "/api/v1/push"                                  // 消息推送
+}
+
+func GenerateUniqueId() string {
+	charset := "0123456789"
+	length := 10
+
+	timestamp := time.Now().UnixMilli() // 毫秒级时间戳
+	randomID, err := gonanoid.Generate(charset, length)
+	if err != nil {
+		LOGGER.Error(err.Error())
+		return "-1"
+	}
+
+	id := fmt.Sprintf("%d%s", timestamp, randomID)
+	return id
 }

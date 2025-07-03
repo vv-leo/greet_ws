@@ -47,7 +47,7 @@ type QueryWaitingTaskResponse struct {
 
 // ExecuteDetailRequest 执行任务详情请求体
 type ExecuteDetailRequest struct {
-	TargetAcc   *int64  `json:"targetAcc"`   // 目标账号
+	TargetAcc   *string `json:"targetAcc"`   // 目标账号
 	PlatformAcc *string `json:"platformAcc"` // 平台账号
 	SeatId      *string `json:"seatId"`      // 座席ID
 	Status      *string `json:"status"`      // 状态
