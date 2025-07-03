@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"git.exclouds.org/ww/greet_ws/global"
 	"git.exclouds.org/ww/greet_ws/utils"
@@ -217,4 +218,24 @@ func (c *ChatWorkClient) GetTenantHelloConfig(tenantId string) ([]TenantHelloCon
 
 	global.LOGGER.Info(fmt.Sprintf("GetTenantHelloConfig-获取成功: 响应数据: %s, 请求: %s", toJSONString(response.Data), reqInfo))
 	return response.Data, nil
+}
+
+// ReportExecuteDetail 上报执行详情的封装方法
+func (c *ChatWorkClient) ReportExecuteDetail(targetAcc int64, seatId string, platformAcc int64, status string, failReason string) error {
+	// 转换数字为字符串
+	targetAccStr := strconv.FormatInt(targetAcc, 10)
+	platformAccStr := strconv.FormatInt(platformAcc, 10)
+
+	detailReq := &ExecuteDetailRequest{
+		TargetAcc:   &targetAccStr,
+		SeatId:      &seatId,
+		PlatformAcc: &platformAccStr,
+		Status:      &status,
+	}
+	if failReason != "" {
+		detailReq.FailReson = &failReason
+	}
+
+	_, err := c.ExecuteDetail(detailReq)
+	return err
 }

@@ -134,15 +134,8 @@ func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config 
 		errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 联系人组合已存在，跳过处理, contactGroup: %s", tenantId, target.SeatId, target.TargetAcc, platformAcc, contactGroup)
 		global.LOGGER.Error(errMsg)
 
-		status := "1"
-		detailReq := &apiclient.ExecuteDetailRequest{
-			TargetAcc:   &targetAccStr,
-			SeatId:      &target.SeatId,
-			PlatformAcc: &platformAccStr,
-			Status:      &status,
-			FailReson:   &errMsg,
-		}
-		_, err = chatWorkClient.ExecuteDetail(detailReq)
+		//上报失败
+		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
 		if err != nil {
 			global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 			return
@@ -154,8 +147,15 @@ func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config 
 	//初始化会话
 	_, err = wsAgreeClient.Initsession(uuid, strconv.FormatInt(platformAcc, 10))
 	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 初始化会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
-		//TODO 上报
+		errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 初始化会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err)
+		global.LOGGER.Error(errMsg)
+		//上报失败
+		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
+		if err != nil {
+			global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+			return
+		}
+		global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
 		return
 	}
 
@@ -208,6 +208,14 @@ func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config 
 		messageId = responseData["ID"].(string)
 		global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 消息ID: %s", tenantId, target.SeatId, target.TargetAcc, platformAcc, messageId))
 	}
+
+	err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "1", "")
+	if err != nil {
+		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+		return
+	}
+	global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
+
 	contactID := global.GenerateUniqueId()
 	// 创建联系人模型
 	contactModel := model.ContactModel{
