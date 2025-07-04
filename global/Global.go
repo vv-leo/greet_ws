@@ -62,7 +62,7 @@ func InitExternalApiUrl() {
 	// ChatWork 服务接口路径
 	ChatWorkQueryWaitingTaskUrl = "/chat_work/v1/task/query_waiting" //查询等待任务
 	ChatWorkExecuteDetailUrl = "/chat_work/v1/task/execute_detail"   //执行任务详情
-	ChatWorkTenantHelloUrl = "/chat_work/v1/config/tenant/hello"     //租户问候配置
+	ChatWorkTenantHelloUrl = "/chat_work/v1/tenant/hello"            //租户问候配置
 
 	// ChatAccount 服务接口路径
 	ChatAccountAssignUrl = "/account/v1/api/v1/assign" //账号分配

@@ -65,11 +65,10 @@ func (svc *GreetService) handelTenantTask(taskData apiclient.TaskData) {
 		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 查询租户配置信息错误: %v", tenantId, err))
 		return
 	}
-	if len(configRes) == 0 {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 租户问候配置为空", tenantId))
-		return
-	}
-	config := configRes[0]
+	//if configRes == nil {
+	//	global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 租户问候配置为空", tenantId))
+	//	return
+	//}
 	targets := taskData.Targets
 	if len(targets) == 0 {
 		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 租户待处理任务为空", tenantId))
@@ -82,7 +81,7 @@ func (svc *GreetService) handelTenantTask(taskData apiclient.TaskData) {
 			continue
 		}
 		// 使用goroutine异步处理，避免阻塞其他任务
-		go svc.handTargetSendMess(target, config)
+		go svc.handTargetSendMess(target, configRes)
 		time.Sleep(900 * time.Millisecond)
 	}
 }
@@ -90,7 +89,7 @@ func (svc *GreetService) handelTenantTask(taskData apiclient.TaskData) {
 func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config apiclient.TenantHelloConfigData) {
 	tenantId := config.TenantId
 	messageType := config.Type
-	textList := config.ContentText
+	textList := config.Content
 	content := ""
 	messageId := ""
 	// 将SeatId从string转换为int64

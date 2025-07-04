@@ -160,8 +160,8 @@ func (c *ConsulUtils) selectByRandom(services []*api.ServiceEntry) *api.ServiceE
 
 // GetChatHistoryServiceURLWithStrategy 使用指定策略获取 ChatHistory 服务地址
 func (c *ConsulUtils) GetChatHistoryServiceURLWithStrategy(strategy LoadBalanceStrategy) (string, error) {
-	return c.GetServiceURLWithStrategy("chat-history", strategy)
-	//return "http://23.148.24.195:9991", nil
+	//return c.GetServiceURLWithStrategy("chat-history", strategy)
+	return "http://23.148.24.195:9991", nil
 }
 
 // GetChatSocketServiceURLWithStrategy 使用指定策略获取 ChatSocket 服务地址
@@ -172,14 +172,14 @@ func (c *ConsulUtils) GetChatSocketServiceURLWithStrategy(strategy LoadBalanceSt
 
 // GetChatWorkServiceURLWithStrategy 使用指定策略获取 ChatWork 服务地址
 func (c *ConsulUtils) GetChatWorkServiceURLWithStrategy(strategy LoadBalanceStrategy) (string, error) {
-	return c.GetServiceURLWithStrategy("chat_work_ws", strategy)
-	//return "http://23.148.24.195:10200", nil
+	//return c.GetServiceURLWithStrategy("chat_work_ws", strategy)
+	return "http://23.148.24.195:11000", nil
 }
 
 // GetChatAccountServiceURLWithStrategy 使用指定策略获取 ChatAccount 服务地址
 func (c *ConsulUtils) GetChatAccountServiceURLWithStrategy(strategy LoadBalanceStrategy) (string, error) {
-	return c.GetServiceURLWithStrategy("chat_accountPool", strategy)
-	//return "http://23.148.24.195:10100", nil
+	//return c.GetServiceURLWithStrategy("chat_accountPool", strategy)
+	return "http://23.148.24.195:8000", nil
 }
 
 // GetAllServiceInstances 获取所有健康的服务实例信息（用于监控和调试）
