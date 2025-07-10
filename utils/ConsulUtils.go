@@ -179,7 +179,7 @@ func (c *ConsulUtils) GetChatWorkServiceURLWithStrategy(strategy LoadBalanceStra
 // GetChatAccountServiceURLWithStrategy 使用指定策略获取 ChatAccount 服务地址
 func (c *ConsulUtils) GetChatAccountServiceURLWithStrategy(strategy LoadBalanceStrategy) (string, error) {
 	//return c.GetServiceURLWithStrategy("chat_accountPool", strategy)
-	return "http://23.148.24.195:8000", nil
+	return "http://23.148.24.195:10100", nil
 }
 
 // GetAllServiceInstances 获取所有健康的服务实例信息（用于监控和调试）

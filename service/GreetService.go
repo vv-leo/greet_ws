@@ -81,15 +81,14 @@ func (svc *GreetService) handelTenantTask(taskData apiclient.TaskData) {
 			continue
 		}
 		// 使用goroutine异步处理，避免阻塞其他任务
-		go svc.handTargetSendMess(target, configRes)
+		go svc.handTargetSendMess(tenantId, target, configRes)
 		time.Sleep(900 * time.Millisecond)
 	}
 }
 
-func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config apiclient.TenantHelloConfigData) {
-	tenantId := config.TenantId
+func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.TaskTarget, config apiclient.TenantHelloConfigData) {
 	messageType := config.Type
-	textList := config.Content
+	textList := config.ContentText
 	content := ""
 	messageId := ""
 	// 将SeatId从string转换为int64
@@ -165,6 +164,11 @@ func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config 
 	}
 	var wsMessModel = resp.WsMessageModel{}
 	if messageType == "text" {
+		// 前置判断：检查问候文本列表是否为空
+		if len(textList) == 0 {
+			errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> 问候文本列表为空，跳过处理", tenantId, target.SeatId, target.TargetAcc)
+			global.LOGGER.Error(errMsg)
+		}
 		content = getRandomGreet(textList)
 		reqModel := req.WsSendMessageTextModel{
 			WithCgiRequest: req.WithCgiRequest{
@@ -177,7 +181,14 @@ func (svc *GreetService) handTargetSendMess(target apiclient.TaskTarget, config 
 		//ws发消息，打招呼(文本)
 		wsMessModel, err = wsAgreeClient.SendMessage(reqModel, uuid, enum.MessageTypeText)
 		if err != nil {
-			global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 文本消息发送失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+			errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 文本消息发送失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err)
+			global.LOGGER.Error(errMsg)
+			//上报失败
+			err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
+			if err != nil {
+				global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+				return
+			}
 			return
 		}
 		global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 文本消息发送成功, message: %+v", tenantId, target.SeatId, target.TargetAcc, platformAcc, wsMessModel))

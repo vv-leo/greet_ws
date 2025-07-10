@@ -22,6 +22,10 @@ zap:
   log-in-console: true
   keep-days: 7
 
+endpoints:
+  ws-server:
+    http-url: 'http://23.148.24.190' #WS服务器地址
+    
 # consul配置
 consul:
   address: "23.148.24.195:8500"  # Consul服务地址

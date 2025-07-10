@@ -59,7 +59,7 @@ type ExecuteDetailRequest struct {
 type TenantHelloConfigData struct {
 	TenantId    string      `json:"tenantId"`    // 租户ID
 	Type        string      `json:"type"`        // 类型：text|link
-	Content     []string    `json:"content"`     // 文本内容
+	ContentText []string    `json:"contentText"` // 文本内容
 	ContentLink interface{} `json:"contentLink"` // 链接内容
 }
 
@@ -70,9 +70,9 @@ type GetTenantHelloConfigRequest struct {
 
 // GetTenantHelloConfigResponse 获取租户问候配置响应
 type GetTenantHelloConfigResponse struct {
-	Code    int                     `json:"code"`
-	Message string                  `json:"message"`
-	Data    []TenantHelloConfigData `json:"data"`
+	Code    int                   `json:"code"`
+	Message string                `json:"message"`
+	Data    TenantHelloConfigData `json:"data"`
 }
 
 // QueryWaitingTask 查询等待任务（使用Consul动态获取服务地址）
@@ -168,13 +168,13 @@ func (c *ChatWorkClient) ExecuteDetail(request *ExecuteDetailRequest) (*ChatWork
 
 // GetTenantHelloConfig 获取租户问候配置（使用Consul动态获取服务地址）
 func (c *ChatWorkClient) GetTenantHelloConfig(tenantId string) (TenantHelloConfigData, error) {
-	var emptyConfig TenantHelloConfigData
+	var config TenantHelloConfigData
 
 	// 使用包级别的 consulUtils 实例
 	chatWorkBaseURL, err := consulUtils.GetChatWorkServiceURLWithStrategy(utils.RoundRobin)
 	if err != nil {
 		global.LOGGER.Error(fmt.Sprintf("GetTenantHelloConfig-获取ChatWork服务地址失败: %v", err))
-		return emptyConfig, fmt.Errorf("无法获取ChatWork服务地址: %v", err)
+		return config, fmt.Errorf("无法获取ChatWork服务地址: %v", err)
 	}
 
 	// 构建请求体
@@ -186,7 +186,7 @@ func (c *ChatWorkClient) GetTenantHelloConfig(tenantId string) (TenantHelloConfi
 	requestData, err := json.Marshal(request)
 	if err != nil {
 		global.LOGGER.Error(fmt.Sprintf("GetTenantHelloConfig-转换JSON失败: %v", err))
-		return emptyConfig, fmt.Errorf("序列化请求数据失败: %v", err)
+		return config, fmt.Errorf("序列化请求数据失败: %v", err)
 	}
 
 	// 构建完整的endpoint URL（使用全局配置中的URL路径）
@@ -200,7 +200,7 @@ func (c *ChatWorkClient) GetTenantHelloConfig(tenantId string) (TenantHelloConfi
 	if respWrapper.StatusCode != http.StatusOK {
 		errInfo := fmt.Sprintf("GetTenantHelloConfig-HTTP请求失败: 状态码%d, 响应: %s, 请求: %s", respWrapper.StatusCode, respWrapper.Body, reqInfo)
 		global.LOGGER.Error(errInfo)
-		return emptyConfig, fmt.Errorf(errInfo)
+		return config, fmt.Errorf(errInfo)
 	}
 
 	// 解析响应
@@ -208,24 +208,18 @@ func (c *ChatWorkClient) GetTenantHelloConfig(tenantId string) (TenantHelloConfi
 	if err := json.Unmarshal([]byte(respWrapper.Body), &response); err != nil {
 		errInfo := fmt.Sprintf("GetTenantHelloConfig-解析响应失败: %v, 请求: %s", err, reqInfo)
 		global.LOGGER.Error(errInfo)
-		return emptyConfig, fmt.Errorf(errInfo)
+		return config, fmt.Errorf(errInfo)
 	}
 
 	// 检查业务响应码
 	if response.Code != 200 {
 		errInfo := fmt.Sprintf("GetTenantHelloConfig-业务失败: %+v, 请求: %s", response, reqInfo)
 		global.LOGGER.Error(errInfo)
-		return emptyConfig, fmt.Errorf(errInfo)
+		return config, fmt.Errorf(errInfo)
 	}
 
-	// 从数组中取第一个元素返回
-	if len(response.Data) > 0 {
-		global.LOGGER.Info(fmt.Sprintf("GetTenantHelloConfig-获取成功: 响应数据: %s, 请求: %s", toJSONString(response.Data[0]), reqInfo))
-		return response.Data[0], nil
-	}
-
-	global.LOGGER.Info(fmt.Sprintf("GetTenantHelloConfig-获取成功但数据为空: 请求: %s", reqInfo))
-	return emptyConfig, nil
+	global.LOGGER.Info(fmt.Sprintf("GetTenantHelloConfig-获取成功: 响应数据: %s, 请求: %s", toJSONString(response.Data), reqInfo))
+	return response.Data, nil
 }
 
 // ReportExecuteDetail 上报执行详情的封装方法

@@ -55,8 +55,8 @@ func InitExternalApiUrl() {
 
 	// ChatHistory 服务接口路径
 	ChatHistorySaveMessagesUrl = "/api/v1/im/saveMessage"         //批量保存消息
-	ChatHistorySaveContactsUrl = "/api/v1/im/SaveContact"         //保存联系人
-	ChatHistoryGetContactUrl = "/api/v1/im/GetContactByCondition" //获取联系人信息
+	ChatHistorySaveContactsUrl = "/api/v1/im/saveContact"         //保存联系人
+	ChatHistoryGetContactUrl = "/api/v1/im/getContactByCondition" //获取联系人信息
 	ChatHistoryUpdateContactUrl = "/api/v1/im/updateContact"      //更新联系人信息
 
 	// ChatWork 服务接口路径
@@ -65,7 +65,7 @@ func InitExternalApiUrl() {
 	ChatWorkTenantHelloUrl = "/chat_work/v1/tenant/hello"            //租户问候配置
 
 	// ChatAccount 服务接口路径
-	ChatAccountAssignUrl = "/account/v1/api/v1/assign" //账号分配
+	ChatAccountAssignUrl = "/account/v1/assign" //账号分配
 
 	FileMediaDownloadAndUploadApiUrl = "/api/v1/im/mediaDownloadAndUpload" // 媒体文件上传下载
 	ChatSocketPushMsgUrl = "/api/v1/push"                                  // 消息推送
