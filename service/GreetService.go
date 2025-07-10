@@ -40,16 +40,16 @@ func (svc *GreetService) GreetTask() {
 	// 查询待处理的问候任务
 	taskList, err := chatWorkClient.QueryWaitingTask()
 	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->查询待处理任务失败: %v", err))
+		global.LOGGER.Error(fmt.Sprintf("【获取待执行任务异常】greet->查询待处理任务失败: %v", err))
 		return
 	}
 
 	if len(taskList) == 0 {
-		global.LOGGER.Info("greet->没有待处理的打招呼任务")
+		global.LOGGER.Info("【判断任务列表是否为空】greet->没有待处理的打招呼任务")
 		return
 	}
 
-	global.LOGGER.Info(fmt.Sprintf("greet->查询到%d个租户待处理任务", len(taskList)))
+	global.LOGGER.Info(fmt.Sprintf("【获取待执行任务】greet->查询到%d个租户待处理任务", len(taskList)))
 
 	// 遍历处理每个租户的任务
 	for _, taskData := range taskList {
@@ -62,7 +62,7 @@ func (svc *GreetService) handelTenantTask(taskData apiclient.TaskData) {
 	tenantId := taskData.TenantId
 	configRes, err := chatWorkClient.GetTenantHelloConfig(tenantId)
 	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 查询租户配置信息错误: %v", tenantId, err))
+		global.LOGGER.Error(fmt.Sprintf("【获取租户配置打招呼信息】greet->tenantId:%s -> 查询租户配置信息错误: %v", tenantId, err))
 		return
 	}
 	//if configRes == nil {
@@ -71,13 +71,13 @@ func (svc *GreetService) handelTenantTask(taskData apiclient.TaskData) {
 	//}
 	targets := taskData.Targets
 	if len(targets) == 0 {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 租户待处理任务为空", tenantId))
+		global.LOGGER.Error(fmt.Sprintf("【判断目标数据是否为空】greet->tenantId:%s -> 租户待处理任务为空", tenantId))
 		return
 	}
 
 	for _, target := range targets {
 		if target.TargetAcc == 0 || target.Country == "" || target.SeatId == "" {
-			global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> 联系人数据有误跳过处理,target: %s", tenantId, toJSONString(target)))
+			global.LOGGER.Error(fmt.Sprintf("【判断目标数据是否异常】greet->tenantId:%s -> 联系人数据有误跳过处理,target: %s", tenantId, toJSONString(target)))
 			continue
 		}
 		// 使用goroutine异步处理，避免阻塞其他任务
@@ -94,7 +94,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 	// 将SeatId从string转换为int64
 	seatId, err := strconv.ParseInt(target.SeatId, 10, 64)
 	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> SeatId类型转换失败, err: %v", tenantId, target.SeatId, target.TargetAcc, err))
+		global.LOGGER.Error(fmt.Sprintf("【坐席id数据转换】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> SeatId类型转换失败, err: %v", tenantId, target.SeatId, target.TargetAcc, err))
 		return
 	}
 
@@ -106,7 +106,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 
 	platformAccInfo, err := chatAccountClient.AssignAccount(pullAccReq)
 	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> 平台账号分配失败, err: %v", tenantId, target.SeatId, target.TargetAcc, err))
+		global.LOGGER.Error(fmt.Sprintf("【拉取ws帐号】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> 平台账号分配失败, err: %v", tenantId, target.SeatId, target.TargetAcc, err))
 		return
 	}
 
@@ -120,7 +120,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 	}
 
 	if platformAcc == 0 || accType == 0 {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 平台账号数据错误, accountType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, accType))
+		global.LOGGER.Error(fmt.Sprintf("【判断ws帐号是否异常】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 平台账号数据错误, accountType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, accType))
 		return
 	}
 
@@ -130,15 +130,15 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 	exists, err := redisUtils.KeyExists(rds, contactGroupRdsKey)
 	if exists {
 		errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 联系人组合已存在，跳过处理, contactGroup: %s", tenantId, target.SeatId, target.TargetAcc, platformAcc, contactGroup)
-		global.LOGGER.Error(errMsg)
+		global.LOGGER.Error("【判断会话组合是否已存在】" + errMsg)
 
 		//上报失败
 		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
 		if err != nil {
-			global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+			global.LOGGER.Error(fmt.Sprintf("【会话组合已存在上报，上报失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 			return
 		}
-		global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
+		global.LOGGER.Info(fmt.Sprintf("【会话组合已存在上报，上报成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
 		return
 	}
 
@@ -146,14 +146,14 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 	_, err = wsAgreeClient.Initsession(uuid, strconv.FormatInt(platformAcc, 10))
 	if err != nil {
 		errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 初始化会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err)
-		global.LOGGER.Error(errMsg)
+		global.LOGGER.Error("【初始化会话异常】" + errMsg)
 		//上报失败
 		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
 		if err != nil {
-			global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+			global.LOGGER.Error(fmt.Sprintf("【初始化会话异常上报，上报失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 			return
 		}
-		global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
+		global.LOGGER.Info(fmt.Sprintf("【初始化会话异常上报，上报成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
 		return
 	}
 
@@ -166,7 +166,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 	if messageType == "text" {
 		// 前置判断：检查问候文本列表是否为空
 		if len(textList) == 0 {
-			errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> 问候文本列表为空，跳过处理", tenantId, target.SeatId, target.TargetAcc)
+			errMsg := fmt.Sprintf("【打招呼文本列表是否为空】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> 问候文本列表为空，跳过处理", tenantId, target.SeatId, target.TargetAcc)
 			global.LOGGER.Error(errMsg)
 		}
 		content = getRandomGreet(textList)
@@ -329,7 +329,6 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 
 // // 随机取一条方法
 func getRandomGreet(greetTextList []string) string {
-	// 检查列表是否为空
 	// 使用专用的随机数生成器
 	randomIndex := rng.Intn(len(greetTextList))
 	return greetTextList[randomIndex]
