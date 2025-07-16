@@ -7,6 +7,7 @@ type ContactModel struct {
 	Unread          int64  `json:"unread"`          // 未读消息的数量，收到新消息时 +1，调用聊天记录接口时清零
 	PlatformAccID   int64  `json:"platformAccId"`   // 平台账号id
 	PlatformAcc     string `json:"platformAcc"`     // 平台账号
+	PlatformAccType int8   `json:"platformAccType"` // 平台账号类型
 	TargetAcc       string `json:"targetAcc"`       // 目标账号
 	AllowReply      int8   `json:"allowReply"`      // 打招呼是否回复，0或1
 	IsOnline        int8   `json:"isOnline"`        // 是否在线，0或1

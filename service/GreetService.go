@@ -236,6 +236,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 		Unread:          0,
 		PlatformAccID:   0,
 		PlatformAcc:     platformAccStr,
+		PlatformAccType: accType,
 		TargetAcc:       targetAccStr,
 		AllowReply:      0,
 		IsOnline:        1,
@@ -281,16 +282,15 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 		return
 	}
 
-	//处理劫持号
-	if accType == 2 || accType == 3 {
-		rdsKey := "hijack:" + platformAccStr
-		err = redisUtils.Set(rds, rdsKey, accType, 0)
-		if err != nil {
-			global.LOGGER.Error(fmt.Sprintf("【劫持号存储redis失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> hijack缓存设置失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
-			return
-		}
-		global.LOGGER.Info(fmt.Sprintf("【劫持号存储redis成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> hijack缓存设置成功, key: %s, val: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, rdsKey, accType))
+	err = redisUtils.Set(rds, contactGroupRdsKey, seatId, time.Hour*24*8)
+	if err != nil {
+		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> contact_group缓存设置失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+		return
+	}
+	global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> contact_group缓存设置成功, key:%s, val:%d", tenantId, target.SeatId, target.TargetAcc, platformAcc, contactGroupRdsKey, seatId))
 
+	//处理劫持号
+	if accType == 3 {
 		// 删除会话
 		_, err = wsAgreeClient.DeleteChat(uuid, targetAccStr)
 		if err != nil {
@@ -299,31 +299,23 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 		}
 		global.LOGGER.Info(fmt.Sprintf("【劫持号删除会话成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 删除会话成功, uuid: %s, accType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, uuid, accType))
 
-		if accType == 3 {
-			// 归档会话
-			_, err = wsAgreeClient.Archive(uuid, targetAccStr)
-			if err != nil {
-				global.LOGGER.Error(fmt.Sprintf("【劫持号归档失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 归档会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
-				return
-			}
-			global.LOGGER.Info(fmt.Sprintf("【劫持号归档成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 归档会话成功, uuid: %s, accType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, uuid, accType))
-
-			// 静音会话
-			_, err = wsAgreeClient.MuteChat(uuid, targetAccStr)
-			if err != nil {
-				global.LOGGER.Error(fmt.Sprintf("【劫持号静音失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 静音会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
-				return
-			}
-			global.LOGGER.Info(fmt.Sprintf("【劫持号静音成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 静音会话成功, uuid: %s, accType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, uuid, accType))
+		// 归档会话
+		_, err = wsAgreeClient.Archive(uuid, targetAccStr)
+		if err != nil {
+			global.LOGGER.Error(fmt.Sprintf("【劫持号归档失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 归档会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+			return
 		}
-	}
+		global.LOGGER.Info(fmt.Sprintf("【劫持号归档成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 归档会话成功, uuid: %s, accType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, uuid, accType))
 
-	err = redisUtils.Set(rds, contactGroupRdsKey, seatId, time.Hour*24*8)
-	if err != nil {
-		global.LOGGER.Error(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> contact_group缓存设置失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
-		return
+		// 静音会话
+		_, err = wsAgreeClient.MuteChat(uuid, targetAccStr)
+		if err != nil {
+			global.LOGGER.Error(fmt.Sprintf("【劫持号静音失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 静音会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
+			return
+		}
+		global.LOGGER.Info(fmt.Sprintf("【劫持号静音成功】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 静音会话成功, uuid: %s, accType: %d", tenantId, target.SeatId, target.TargetAcc, platformAcc, uuid, accType))
+
 	}
-	global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> contact_group缓存设置成功, key:%s, val:%d", tenantId, target.SeatId, target.TargetAcc, platformAcc, contactGroupRdsKey, seatId))
 
 	global.LOGGER.Info(fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> greet任务执行成功", tenantId, target.SeatId, target.TargetAcc, platformAcc))
 }

@@ -34,7 +34,7 @@ type AssignAccountRequest struct {
 // AccountData 账号数据结构
 type AccountData struct {
 	AccountName int64 `json:"accountName"` // 账号名称
-	AccountType int64 `json:"accountType"` // 账号类型
+	AccountType int8  `json:"accountType"` // 账号类型
 }
 
 // AssignAccountResponse 账号分配响应
