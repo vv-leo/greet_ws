@@ -172,13 +172,13 @@ func (c *ConsulUtils) GetChatSocketServiceURLWithStrategy(strategy LoadBalanceSt
 
 // GetChatWorkServiceURLWithStrategy 使用指定策略获取 ChatWork 服务地址
 func (c *ConsulUtils) GetChatWorkServiceURLWithStrategy(strategy LoadBalanceStrategy) (string, error) {
-	return c.GetServiceURLWithStrategy("chat_work_ws", strategy)
+	return c.GetServiceURLWithStrategy("chat-works-ws", strategy)
 	//return "http://23.148.24.195:11000", nil
 }
 
 // GetChatAccountServiceURLWithStrategy 使用指定策略获取 ChatAccount 服务地址
 func (c *ConsulUtils) GetChatAccountServiceURLWithStrategy(strategy LoadBalanceStrategy) (string, error) {
-	return c.GetServiceURLWithStrategy("chat_accountPool", strategy)
+	return c.GetServiceURLWithStrategy(" chat-accounts-ws", strategy)
 	//return "http://23.148.24.195:10100", nil
 }
 
