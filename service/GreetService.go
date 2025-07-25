@@ -133,7 +133,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 		global.LOGGER.Error("【会话组合已存在】" + errMsg)
 
 		//上报失败
-		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
+		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, accType, "2", errMsg)
 		if err != nil {
 			global.LOGGER.Error(fmt.Sprintf("【会话组合已存在上报=>上报失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 			return
@@ -143,12 +143,12 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 	}
 
 	//初始化会话
-	_, err = wsAgreeClient.Initsession(uuid, strconv.FormatInt(platformAcc, 10))
+	_, err = wsAgreeClient.Initsession(uuid, targetAccStr)
 	if err != nil {
 		errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 初始化会话失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err)
 		global.LOGGER.Error("【初始化会话异常】" + errMsg)
 		//上报失败
-		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
+		err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, accType, "2", errMsg)
 		if err != nil {
 			global.LOGGER.Error(fmt.Sprintf("【初始化会话异常上报=>上报失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 			return
@@ -184,7 +184,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 			errMsg := fmt.Sprintf("greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 文本消息发送失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err)
 			global.LOGGER.Error("【ws发消息失败】" + errMsg)
 			//上报失败
-			err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "2", errMsg)
+			err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, accType, "2", errMsg)
 			if err != nil {
 				global.LOGGER.Error(fmt.Sprintf("【ws发消息失败=>上报失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 				return
@@ -220,7 +220,7 @@ func (svc *GreetService) handTargetSendMess(tenantId string, target apiclient.Ta
 		global.LOGGER.Info(fmt.Sprintf("【获取messageId】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 消息ID: %s", tenantId, target.SeatId, target.TargetAcc, platformAcc, messageId))
 	}
 
-	err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, "1", "")
+	err = chatWorkClient.ReportExecuteDetail(target.TargetAcc, target.SeatId, platformAcc, accType, "1", "")
 	if err != nil {
 		global.LOGGER.Error(fmt.Sprintf("【打招呼成功=>上报失败】greet->tenantId:%s -> seatId:%s -> targetAcc:%d -> platformAcc:%d -> 上报执行详情失败: %v", tenantId, target.SeatId, target.TargetAcc, platformAcc, err))
 		return

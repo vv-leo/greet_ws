@@ -48,11 +48,12 @@ type QueryWaitingTaskResponse struct {
 
 // ExecuteDetailRequest 执行任务详情请求体
 type ExecuteDetailRequest struct {
-	TargetAcc   *string `json:"targetAcc"`   // 目标账号
-	PlatformAcc *string `json:"platformAcc"` // 平台账号
-	SeatId      *string `json:"seatId"`      // 座席ID
-	Status      *string `json:"status"`      // 状态
-	FailReson   *string `json:"failReson"`   // 失败原因
+	TargetAcc       *string `json:"targetAcc"`   // 目标账号
+	PlatformAcc     *string `json:"platformAcc"` // 平台账号
+	PlatformAccType *string `json:"accountType"` // 平台账号类型
+	SeatId          *string `json:"seatId"`      // 座席ID
+	Status          *string `json:"status"`      // 状态
+	FailReson       *string `json:"failReson"`   // 失败原因
 }
 
 // TenantHelloConfigData 租户问候配置数据结构
@@ -223,16 +224,18 @@ func (c *ChatWorkClient) GetTenantHelloConfig(tenantId string) (TenantHelloConfi
 }
 
 // ReportExecuteDetail 上报执行详情的封装方法
-func (c *ChatWorkClient) ReportExecuteDetail(targetAcc int64, seatId string, platformAcc int64, status string, failReason string) error {
+func (c *ChatWorkClient) ReportExecuteDetail(targetAcc int64, seatId string, platformAcc int64, platformAccType int8, status string, failReason string) error {
 	// 转换数字为字符串
 	targetAccStr := strconv.FormatInt(targetAcc, 10)
 	platformAccStr := strconv.FormatInt(platformAcc, 10)
+	platformAccTypeStr := strconv.Itoa(int(platformAccType))
 
 	detailReq := &ExecuteDetailRequest{
-		TargetAcc:   &targetAccStr,
-		SeatId:      &seatId,
-		PlatformAcc: &platformAccStr,
-		Status:      &status,
+		TargetAcc:       &targetAccStr,
+		SeatId:          &seatId,
+		PlatformAcc:     &platformAccStr,
+		PlatformAccType: &platformAccTypeStr,
+		Status:          &status,
 	}
 	if failReason != "" {
 		detailReq.FailReson = &failReason
